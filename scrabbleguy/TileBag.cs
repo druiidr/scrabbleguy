@@ -61,4 +61,8 @@ public class TileBag
         tiles.RemoveAt(index);
         return drawnTile;
     }
+    public bool IsEmpty()
+    {
+        return tiles.Count == 0;
+    }
 }

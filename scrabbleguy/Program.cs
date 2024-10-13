@@ -4,6 +4,7 @@ class Program
 {
     static void Main(string[] args)
     {
+        
         ScrabbleBoard board = new ScrabbleBoard();
         TileBag tileBag = new TileBag();
         Player player1 = new Player("Alice");
@@ -17,5 +18,14 @@ class Program
         // Display the board and player's rack
         board.PrintBoard();
         player1.ShowRack();
+
+        // Game loop until the tile bag is empty
+        while (!tileBag.IsEmpty())
+        {
+            // Player's turn
+            player1.PlayerTurn(board, tileBag);
+        }
+
+        Console.WriteLine("Sack cleared. Game over!");
     }
 }

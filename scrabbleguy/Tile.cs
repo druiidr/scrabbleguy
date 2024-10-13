@@ -16,6 +16,11 @@ namespace scrabbleguy
             Letter = letter;
             Score = score;
         }
+        
+        public override string ToString()
+        {
+            return (""+Letter); 
+        }
     }
 
 }
