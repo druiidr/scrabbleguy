@@ -8,11 +8,13 @@ class Program
         ScrabbleBoard board = new ScrabbleBoard();
         TileBag tileBag = new TileBag();
         Player player1 = new Player("Alice");
+        Player player2 = new Player("steve");
 
         // Player draws 7 tiles
         for (int i = 0; i < 7; i++)
         {
             player1.DrawTile(tileBag);
+            player2.DrawTile(tileBag);
         }
 
         // Display the board and player's rack
@@ -24,6 +26,7 @@ class Program
         {
             // Player's turn
             player1.PlayerTurn(board, tileBag);
+            player2.PlayerTurn(board, tileBag);
         }
 
         Console.WriteLine("Sack cleared. Game over!");

@@ -151,6 +151,7 @@ public class Player
             AddPoints(wordTiles);
             Console.WriteLine(score);
             board.PrintBoard();
+            board.PrintPlayedWords();
         }
         else
         {

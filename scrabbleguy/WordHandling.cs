@@ -6,7 +6,8 @@ namespace scrabbleguy
 {
     internal class WordHandling
     {
-        static ScrabbleDictionary scrabbleDictionary = new ScrabbleDictionary(@"C:\Users\gguyl\OneDrive\מסמכים\fullScrabbleLegalDictionary.txt");
+        //transmute the included full scrabble dictionary included as a file into a ScrabbleDictionary object 
+        static ScrabbleDictionary scrabbleDictionary = new ScrabbleDictionary(@"C:\Users\gguyl\source\repos\scrabbleguy\scrabbleguy\fullScrabbleLegalDictionary.txt");//modify filepath when downloading
 
         public static string TilesToWord(List<Tile> word)
         {
@@ -29,5 +30,7 @@ namespace scrabbleguy
             Console.WriteLine("Not a real word!");
             return false;
         }
+
+       
     }
 }

@@ -1,9 +1,11 @@
 ﻿using scrabbleguy;
+using System.Text;
 
 public class ScrabbleBoard
 {
     private Tile[,] board;
     private const int BoardSize = 15;
+    private HashSet<string> playedwords=new HashSet<string>();
 
     public ScrabbleBoard()
     {
@@ -35,56 +37,48 @@ public class ScrabbleBoard
     }
 
     // CanPlaceWord: Validate that the word can be placed considering both rack and board tiles
-    public bool CanPlaceWord(List<Tile> wordTiles, int startRow, int startCol, bool horizontal, Player player)
+    public bool CanPlaceWord(List<Tile> wordTiles, int wordRow, int wordCol, bool horizontal, Player player)
     {
-        List<Tile> rackTilesToUse = new List<Tile>(); // Holds tiles that need to be placed from the rack
-        int row = startRow;
-        int col = startCol;
-        if (WordHandling.ValidWord(wordTiles))
+        // Validate if the main word can be placed as usual.
+        if (!WordHandling.ValidWord(wordTiles))
+            return false;
+
+        // Check for new words formed with pre-existing tiles
+        foreach (Tile tile in wordTiles)
         {
-            // Traverse the board and check each tile in the word
-            for (int i = 0; i < wordTiles.Count; i++)
+            int tileRow = horizontal ? wordRow : wordRow++;
+            int tileCol = horizontal ? wordCol++ : wordCol;
+
+            // If placing horizontally, check vertically
+            if (horizontal)
             {
-                if (row >= BoardSize || col >= BoardSize) // Out of bounds
+                if (HasAdjacentTilesVertically(tileRow, tileCol))
                 {
-                    Console.WriteLine("Word placement out of board bounds.");
-                    return false;
+                    List<Tile> newVerticalWord = FormVerticalWord(tileRow, tileCol);
+                    if (!WordHandling.ValidWord(newVerticalWord))
+                        return false;  // Invalid perpendicular word
+                    if(!playedwords.Contains(WordHandling.TilesToWord(newVerticalWord)))
+                         player.AddPoints(newVerticalWord);
                 }
-
-                Tile currentBoardTile = board[row, col];
-                Tile playerTile = wordTiles[i];
-
-                if (currentBoardTile != null)
-                {
-                    // If there is already a tile on the board, it must match the letter in the word
-                    if (currentBoardTile.Letter != playerTile.Letter)
-                    {
-                        Console.WriteLine($"Conflict with existing tile '{currentBoardTile.Letter}' at position ({row}, {col}).");
-                        return false;
-                    }
-                }
-                else
-                {
-
-                    rackTilesToUse.Add(playerTile);
-                }
-
-                if (horizontal)
-                    col++;
-                else
-                    row++;
             }
-
-            // If the word can be placed, remove the tiles from the player's rack that were used
-            foreach (var tile in rackTilesToUse)
+            // If placing vertically, check horizontally
+            else
             {
-                player.RemoveTileFromRack(tile);
-            }
+                if (HasAdjacentTilesHorizontally(tileRow, tileCol))
+                {
+                    List<Tile> newHorizontalWord = FormHorizontalWord(tileRow, tileCol);
+                    if (!WordHandling.ValidWord(newHorizontalWord))
+                        return false;  // Invalid perpendicular word
+                    if (!playedwords.Contains(WordHandling.TilesToWord(newHorizontalWord)))
+                        player.AddPoints(newHorizontalWord);
 
-            return true;
+                }
+            }
         }
-        return false;
+
+        return true; // If all validations pass
     }
+
 
     // Place the word on the board (only if CanPlaceWord passed)
     public void PlaceWord(List<Tile> wordTiles, int startRow, int startCol, bool horizontal)
@@ -104,5 +98,108 @@ public class ScrabbleBoard
             else
                 row++;
         }
+        playedwords.Add(WordHandling.TilesToWord(wordTiles));
     }
+    public bool ValidateNewWordWithExistingTiles(int row, int col, bool horizontal, List<Tile> placedTiles)
+    {
+        // Validate main word first (already implemented)
+        if (!WordHandling.ValidWord(placedTiles))
+            return false;
+
+        // Check for perpendicular words
+        foreach (Tile tile in placedTiles)
+        {
+            int tileRow = horizontal ? row : row++;
+            int tileCol = horizontal ? col++ : col;
+
+            // Check vertically if the word is placed horizontally
+            if (horizontal)
+            {
+                if (HasAdjacentTilesVertically(tileRow, tileCol))
+                {
+                    List<Tile> newVerticalWord = FormVerticalWord(tileRow, tileCol);
+                    if (!WordHandling.ValidWord(newVerticalWord))
+                        Console.WriteLine("invalid adjacent word: "+newVerticalWord);
+                    return false;  // Invalid word
+                }
+            }
+            // Check horizontally if the word is placed vertically
+            else
+            {
+                if (HasAdjacentTilesHorizontally(tileRow, tileCol))
+                {
+                    List<Tile> newHorizontalWord = FormHorizontalWord(tileRow, tileCol);
+                    if (!WordHandling.ValidWord(newHorizontalWord))
+                        Console.WriteLine("invalid adjacent word: "+newHorizontalWord);
+                        return false;  // Invalid word
+                }
+            }
+        }
+        return true; // All words valid
+    }
+
+    private bool HasAdjacentTilesVertically(int row, int col)
+    {
+        return (row > 0 && board[row - 1, col] != null) || (row < 14 && board[row + 1, col] != null);
+    }
+
+    private bool HasAdjacentTilesHorizontally(int row, int col)
+    {
+        return (col > 0 && board[row, col - 1] != null) || (col < 14 && board[row, col + 1] != null);
+    }
+
+    private List<Tile> FormVerticalWord(int row, int col)
+    {
+        List<Tile> word = new List<Tile>();
+
+        // Move upwards
+        int tempRow = row;
+        while (tempRow >= 0 && board[tempRow, col] != null)
+        {
+            word.Insert(0, board[tempRow, col]); // Insert at the beginning
+            tempRow--;
+        }
+
+        // Move downwards
+        tempRow = row + 1;
+        while (tempRow <= 14 && board[tempRow, col] != null)
+        {
+            word.Add(board[tempRow, col]);  // Append to the end
+            tempRow++;
+        }
+
+        return word;
+    }
+
+    private List<Tile> FormHorizontalWord(int row, int col)
+    {
+        List<Tile> word = new List<Tile>();
+
+        // Move leftwards
+        int tempCol = col;
+        while (tempCol >= 0 && board[row, tempCol] != null)
+        {
+            word.Insert(0, board[row, tempCol]); // Insert at the beginning
+            tempCol--;
+        }
+
+        // Move rightwards
+        tempCol = col + 1;
+        while (tempCol <= 14 && board[row, tempCol] != null)
+        {
+            word.Add(board[row, tempCol]);  // Append to the end
+            tempCol++;
+        }
+
+        return word;
+    }
+
+    public void PrintPlayedWords()
+    {
+        foreach (string str in playedwords)
+        {
+            Console.WriteLine(str);
+            }
+    }
+
 }
