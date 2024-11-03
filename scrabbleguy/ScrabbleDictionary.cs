@@ -1,4 +1,5 @@
-﻿using System;
+﻿using scrabbleguy;
+using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -29,5 +30,9 @@ public class ScrabbleDictionary
     public bool IsValidWord(string word)
     {
         return validWords.Contains(word);
+    }
+    public HashSet<string> GetFulldictionary()
+    {
+        return validWords;
     }
 }

@@ -1,4 +1,4 @@
-﻿using scrabbleguy;
+﻿using scrabbleguy;   
 
 class Program
 {
@@ -28,7 +28,9 @@ class Program
             player1.PlayerTurn(board, tileBag);
             player2.PlayerTurn(board, tileBag);
         }
-
-        Console.WriteLine("Sack cleared. Game over!");
+        Player winner;
+        if (player1.score < player2.score) { winner=player1; }
+        else { winner=player2; }
+        Console.WriteLine("Sack cleared. {0}  won",winner.Name);
     }
 }

@@ -8,7 +8,15 @@ namespace scrabbleguy
     {
         //transmute the included full scrabble dictionary included as a file into a ScrabbleDictionary object 
         static ScrabbleDictionary scrabbleDictionary = new ScrabbleDictionary(@"C:\Users\gguyl\source\repos\scrabbleguy\scrabbleguy\fullScrabbleLegalDictionary.txt");//modify filepath when downloading
-
+        static Trie preTrie = new Trie();
+        static Trie postTrie = new Trie();
+        static WordHandling()
+        {
+            foreach (string word in scrabbleDictionary.GetFulldictionary())
+            {
+                preTrie.Insert(word);
+            }
+        }
         public static string TilesToWord(List<Tile> word)
         {
             StringBuilder strBuilder = new StringBuilder();
@@ -30,7 +38,10 @@ namespace scrabbleguy
             Console.WriteLine("Not a real word!");
             return false;
         }
-
-       
+        // Use Trie to suggest possible extensions of a prefix
+        public static List<string> GetPossibleWords(string prefix)
+        {
+            return preTrie.FindWordsWith(prefix);
+        }
     }
 }

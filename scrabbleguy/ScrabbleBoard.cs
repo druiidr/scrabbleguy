@@ -39,45 +39,54 @@ public class ScrabbleBoard
     // CanPlaceWord: Validate that the word can be placed considering both rack and board tiles
     public bool CanPlaceWord(List<Tile> wordTiles, int wordRow, int wordCol, bool horizontal, Player player)
     {
+        bool isAttached=false;
         // Validate if the main word can be placed as usual.
         if (!WordHandling.ValidWord(wordTiles))
             return false;
 
-        // Check for new words formed with pre-existing tiles
-        foreach (Tile tile in wordTiles)
-        {
-            int tileRow = horizontal ? wordRow : wordRow++;
-            int tileCol = horizontal ? wordCol++ : wordCol;
 
-            // If placing horizontally, check vertically
+        // Check for new words formed with pre-existing tiles
+        for (int i = 0; i < wordTiles.Count; i++)
+        {
+            if (wordTiles[i] != null)
+                isAttached = true;
+            int tileRow = horizontal ? wordRow : wordRow + i;
+            int tileCol = horizontal ? wordCol + i : wordCol;
+
+            // Check if placing horizontally
             if (horizontal)
             {
                 if (HasAdjacentTilesVertically(tileRow, tileCol))
                 {
                     List<Tile> newVerticalWord = FormVerticalWord(tileRow, tileCol);
                     if (!WordHandling.ValidWord(newVerticalWord))
-                        return false;  // Invalid perpendicular word
-                    if(!playedwords.Contains(WordHandling.TilesToWord(newVerticalWord)))
-                         player.AddPoints(newVerticalWord);
+                        return false; // Invalid perpendicular word
+                    if (!playedwords.Contains(WordHandling.TilesToWord(newVerticalWord)))
+                    {
+                        player.AddPoints(newVerticalWord,tileRow,tileCol,false,this); ; // Calculate points for new words
+                        playedwords.Add(WordHandling.TilesToWord(newVerticalWord)); // Add to played words
+                    }
                 }
             }
-            // If placing vertically, check horizontally
+            // Check if placing vertically
             else
             {
                 if (HasAdjacentTilesHorizontally(tileRow, tileCol))
                 {
                     List<Tile> newHorizontalWord = FormHorizontalWord(tileRow, tileCol);
                     if (!WordHandling.ValidWord(newHorizontalWord))
-                        return false;  // Invalid perpendicular word
+                        return false; // Invalid perpendicular word
                     if (!playedwords.Contains(WordHandling.TilesToWord(newHorizontalWord)))
-                        player.AddPoints(newHorizontalWord);
-
+                    {
+                        player.AddPoints(newHorizontalWord,tileRow,tileCol,true,this); ; // Calculate points for new words
+                        playedwords.Add(WordHandling.TilesToWord(newHorizontalWord)); // Add to played words
+                    }
                 }
             }
         }
-
-        return true; // If all validations pass
+        return isAttached; // If all validations pass
     }
+
 
 
     // Place the word on the board (only if CanPlaceWord passed)
@@ -85,12 +94,15 @@ public class ScrabbleBoard
     {
         int row = startRow;
         int col = startCol;
+        int tileMultiplyer = 1;
+        int wordmultiplyer = 1;
 
         for (int i = 0; i < wordTiles.Count; i++)
         {
             if (board[row, col] == null) // Only place tile if the spot is empty
             {
                 board[row, col] = wordTiles[i];
+              
             }
 
             if (horizontal)
@@ -100,6 +112,7 @@ public class ScrabbleBoard
         }
         playedwords.Add(WordHandling.TilesToWord(wordTiles));
     }
+    
     public bool ValidateNewWordWithExistingTiles(int row, int col, bool horizontal, List<Tile> placedTiles)
     {
         // Validate main word first (already implemented)
@@ -198,7 +211,7 @@ public class ScrabbleBoard
     {
         foreach (string str in playedwords)
         {
-            Console.WriteLine(str);
+            Console.Write(str+", ");
             }
     }
 

@@ -48,6 +48,13 @@ public class Player
             DrawTile(tileBag);
         }
     }
+    public void RefillRack(List<Tile> tiles)
+    {
+        foreach (Tile tile in tiles)
+        {
+            Rack.Add(tile);
+        }
+    }
 
     // Show the player's rack (for testing purposes)
     public void ShowRack()
@@ -59,16 +66,102 @@ public class Player
         Console.WriteLine();
     }
     //manage the score from a given word
-    public void AddPoints (List<Tile> wordTiles)
+    // Manage the score from a given word, considering multipliers
+    public void AddPoints(List<Tile> wordTiles, int startRow, int startCol, bool horizontal, ScrabbleBoard board)
     {
         int roundPoints = 0;
-        foreach (Tile tile in wordTiles)
-        {
-            roundPoints+=tile.Score;
-        }
-        score+=roundPoints;
+        int wordMultiplier = 1; // This will hold the cumulative word multiplier
 
+        for (int i = 0; i < wordTiles.Count; i++)
+        {
+            Tile tile = wordTiles[i];
+            int row = horizontal ? startRow : startRow + i;
+            int col = horizontal ? startCol + i : startCol;
+
+            // Calculate the tile score
+            roundPoints += tile.Score;
+
+            // Get the multiplier for the current tile position
+            
+
+            // Apply multipliers
+            switch (row,col)
+            {
+                case (0, 3):
+                case (0, 11):               
+                case (2, 6):
+                case (2, 8):
+                case (3, 0):
+                case (3, 7):
+                case (3, 14):
+                case (6, 2):
+                case (6, 6):
+                case (6, 8):
+                case (6, 12):
+                case (7, 3):
+                case (7, 11):
+                case (8, 2):
+                case (8, 6):
+                case (8, 8):
+                case (8, 12):
+                case (11, 0):
+                case (11, 7):
+                case (11, 14):
+                case (12, 6):
+                case (12, 8):
+                case (14, 3):
+                case (14, 11):
+                    Console.WriteLine("{0} double Letter!!", tile.Letter);
+                    roundPoints += tile.Score; // Double the tile score
+                    break;
+                case (1, 5):
+                case (1, 9):
+                case (5, 1):
+                case (5, 5):
+                case (5, 9):
+                case (5, 13):
+                case (9, 1):
+                case (9, 5):
+                case (9, 9):
+                case (9, 13):
+                case (13, 5):
+                case (13, 9):
+                    roundPoints += tile.Score * 2; // Triple the tile score
+                    Console.WriteLine("{0} triple Letter!!!",tile.Letter);
+                    break;
+        case (1, 1):
+        case (2, 2):
+        case (3, 3):
+        case (4, 4):
+        case (7, 7): // Center square, also a Double Word
+        case (10, 10):
+        case (11, 11):
+        case (12, 12):
+                    Console.WriteLine( "double word!!");
+                    wordMultiplier *= 2; // Double the word score
+                    break;
+                case (0, 0):
+                case (0, 7):
+                case (0, 14):
+                case (7, 0):
+                case (7, 14):
+                case (14, 0):
+                case (14, 7):
+                case (14, 14):
+                    Console.WriteLine("tripple word!!!");
+                    wordMultiplier *= 3; // Triple the word score
+                    break;
+            }
+        }
+        
+        // Apply the word multipliers to the total score
+        roundPoints *= wordMultiplier;
+
+        // Add the points to the player's score
+        score += roundPoints;
+        Console.WriteLine($"{Name} scored {roundPoints} points this turn. Total Score: {score}");
     }
+
 
     // Player's turn: handle actions like placing a word and interacting with the board
     public void PlayerTurn(ScrabbleBoard board, TileBag tileBag)
@@ -148,7 +241,7 @@ public class Player
         {
             board.PlaceWord(wordTiles, wordRow, wordCol, orientation);
             Console.WriteLine("Word placed successfully.");
-            AddPoints(wordTiles);
+            AddPoints(wordTiles, wordRow, wordCol, orientation, board);
             Console.WriteLine(score);
             board.PrintBoard();
             board.PrintPlayedWords();
@@ -156,10 +249,11 @@ public class Player
         else
         {
             Console.WriteLine("Invalid word placement. Try again.");
+            RefillRack(wordTiles);
+            PlayerTurn(board, tileBag);
         }
 
         RefillRack(tileBag); // Refill the player's rack after their turn
-        ShowRack(); // Show updated rack
     }
 
 }
