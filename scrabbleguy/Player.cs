@@ -71,7 +71,11 @@ public class Player
     {
         int roundPoints = 0;
         int wordMultiplier = 1; // This will hold the cumulative word multiplier
-
+        if (wordTiles.Count ==7) //handles bingos(turns where a player uses all of his rack in a word)
+        {
+            Console.WriteLine("BINGO!!!!");
+            roundPoints+=50;
+        }
         for (int i = 0; i < wordTiles.Count; i++)
         {
             Tile tile = wordTiles[i];
@@ -166,94 +170,123 @@ public class Player
     // Player's turn: handle actions like placing a word and interacting with the board
     public void PlayerTurn(ScrabbleBoard board, TileBag tileBag)
     {
-        int wordRow=0;
-        int rowCurr=0;
+        int wordRow = 0;
+        int rowCurr = 0;
         int wordCol = 0;
         int colCurr = 0;
-        bool orientation=false; // true=horizontal, false=vertical;
+        bool orientation = false; // true=horizontal, false=vertical;
 
         Console.WriteLine($"{Name}, it's your turn!");
         ShowRack();
-        try
+        Console.WriteLine("play the round or draw from tile bag?()");
+        if (bool.Parse(Console.ReadLine()))
         {
-            Console.WriteLine("Pick a starting row (0-14):");
-            wordRow = int.Parse(Console.ReadLine());
-            rowCurr = wordRow;
-
-            Console.WriteLine("Pick a starting column (0-14):");
-            wordCol = int.Parse(Console.ReadLine());
-            colCurr = wordCol;
-
-            Console.WriteLine("Horizontal orientation? (true/false):");
-            orientation = bool.Parse(Console.ReadLine());
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine(ex);
-        }
-
-        Console.WriteLine("Pick tiles to form a word (e.g., enter the letters one by one):");
-        List<Tile> wordTiles = new List<Tile>();
-        char inputLetter;
-
-        do
-        {
-            Console.WriteLine("Enter a letter from your rack (or press '0' to finish):");
-            inputLetter = char.Parse(Console.ReadLine().ToUpper());
-
-            if (inputLetter != '0')
+            try
             {
-                Tile boardTile = board.GetBoard()[rowCurr, colCurr];
+                Console.WriteLine("Pick a starting row (0-14):");
+                wordRow = int.Parse(Console.ReadLine());
+                rowCurr = wordRow;
 
-                // Check if there's already a tile on the board
-                if (boardTile != null && boardTile.Letter == inputLetter)
-                {
-                    wordTiles.Add(boardTile); // Use the board's tile
-                }
-                else
-                {
-                    // Look for the tile in the player's rack
-                    Tile tileFromRack = Rack.FirstOrDefault(t => t.Letter == inputLetter);
+                Console.WriteLine("Pick a starting column (0-14):");
+                wordCol = int.Parse(Console.ReadLine());
+                colCurr = wordCol;
 
-                    if (tileFromRack != null)
+                Console.WriteLine("Horizontal orientation? (true/false):");
+                orientation = bool.Parse(Console.ReadLine());
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+
+            Console.WriteLine("Pick tiles to form a word (e.g., enter the letters one by one):");
+            List<Tile> wordTiles = new List<Tile>();
+            char inputLetter;
+
+            do
+            {
+                Console.WriteLine("Enter a letter from your rack (or press '0' to finish):");
+                inputLetter = char.Parse(Console.ReadLine().ToUpper());
+
+                if (inputLetter != '0')
+                {
+                    Tile boardTile = board.GetBoard()[rowCurr, colCurr];
+
+                    // Check if there's already a tile on the board
+                    if (boardTile != null && boardTile.Letter == inputLetter)
                     {
-                        wordTiles.Add(tileFromRack);
-                        RemoveTileFromRack(tileFromRack); // Remove the tile from player's rack once used
+                        wordTiles.Add(boardTile); // Use the board's tile
                     }
                     else
                     {
-                        Console.WriteLine("You don't have that tile in your rack.");
-                    }
-                }
+                        // Look for the tile in the player's rack
+                        Tile tileFromRack = Rack.FirstOrDefault(t => t.Letter == inputLetter);
 
-                // Move to the next position
-                if (orientation)
-                    colCurr++;
-                else
-                    rowCurr++;
+                        if (tileFromRack != null)
+                        {
+                            wordTiles.Add(tileFromRack);
+                            RemoveTileFromRack(tileFromRack); // Remove the tile from player's rack once used
+                        }
+                        else
+                        {
+                            Console.WriteLine("You don't have that tile in your rack.");
+                        }
+                    }
+
+                    // Move to the next position
+                    if (orientation)
+                        colCurr++;
+                    else
+                        rowCurr++;
+                }
+            }
+            while (inputLetter != '0');
+
+
+            // Check if the word can be placed
+            if (board.CanPlaceWord(wordTiles, wordRow, wordCol, orientation, this))
+            {
+                board.PlaceWord(wordTiles, wordRow, wordCol, orientation);
+                Console.WriteLine("Word placed successfully.");
+                AddPoints(wordTiles, wordRow, wordCol, orientation, board);
+                Console.WriteLine(score);
+                board.PrintBoard();
+                board.PrintPlayedWords();
+            }
+            else
+            {
+                Console.WriteLine("Invalid word placement. Try again.");
+                RefillRack(wordTiles);
+                PlayerTurn(board, tileBag);
             }
         }
-        while (inputLetter != '0');
-
-
-        // Check if the word can be placed
-        if (board.CanPlaceWord(wordTiles, wordRow, wordCol, orientation,this))
-        {
-            board.PlaceWord(wordTiles, wordRow, wordCol, orientation);
-            Console.WriteLine("Word placed successfully.");
-            AddPoints(wordTiles, wordRow, wordCol, orientation, board);
-            Console.WriteLine(score);
-            board.PrintBoard();
-            board.PrintPlayedWords();
-        }
         else
-        {
-            Console.WriteLine("Invalid word placement. Try again.");
-            RefillRack(wordTiles);
+            {
+
+            char inputLetter;
+            do
+            {
+                Console.WriteLine("Enter letters from your rack to remove (or press '0' to finish):");
+                inputLetter = char.Parse(Console.ReadLine().ToUpper());
+                Tile tileFromRack = Rack.FirstOrDefault(t => t.Letter == inputLetter);
+
+                if (tileFromRack != null)
+                {
+                    tileBag.AddTiles(tileFromRack.Letter,1,tileFromRack.Score);
+                    RemoveTileFromRack(tileFromRack); // Remove the tile from player's rack once used
+                }
+                else
+                {
+                    Console.WriteLine("You don't have that tile in your rack.");
+                }
+
+            } while (inputLetter != '0');
+            RefillRack(tileBag);
             PlayerTurn(board, tileBag);
         }
 
         RefillRack(tileBag); // Refill the player's rack after their turn
+
     }
 
 }

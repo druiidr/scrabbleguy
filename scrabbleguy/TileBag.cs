@@ -43,7 +43,7 @@ public class TileBag
     }
 
     // Method to add tiles to the bag
-    private void AddTiles(char letter, int count, int score)
+    public void AddTiles(char letter, int count, int score)
     {
         for (int i = 0; i < count; i++)
         {

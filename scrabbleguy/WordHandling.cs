@@ -35,7 +35,7 @@ namespace scrabbleguy
             {
                 return true;
             }
-            Console.WriteLine("Not a real word!");
+            Console.WriteLine(str+"  Not a real word!");
             return false;
         }
         // Use Trie to suggest possible extensions of a prefix
