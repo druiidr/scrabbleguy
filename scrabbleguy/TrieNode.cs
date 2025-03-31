@@ -9,7 +9,7 @@ namespace scrabbleguy
     // Trie Node Class
     public class TrieNode
     {
-        public Dictionary<char, TrieNode> Children { get; private set; }
+        public Dictionary<char, TrieNode> Children { get; set; }
         public bool IsEndOfWord { get; set; }
 
         public TrieNode()

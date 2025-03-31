@@ -11,6 +11,30 @@ namespace scrabbleguy
         {
             root = new TrieNode();
         }
+        public List<string> FindWordsWith(char[] letters)
+        {
+            List<string> results = new List<string>();
+            FindWordsWithHelper(root, "", letters, results);
+            return results;
+        }
+
+        private void FindWordsWithHelper(TrieNode node, string currentWord, char[] letters, List<string> results)
+        {
+            if (node.IsEndOfWord)
+            {
+                results.Add(currentWord);
+            }
+
+            foreach (char letter in letters)
+            {
+                if (node.Children.ContainsKey(letter))
+                {
+                    char[] remainingLetters = letters.Where(l => l != letter).ToArray();
+                    FindWordsWithHelper(node.Children[letter], currentWord + letter, remainingLetters, results);
+                }
+            }
+        }
+        
 
         // Insert a word into the Trie
         public void Insert(string word)

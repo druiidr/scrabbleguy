@@ -1,38 +1,48 @@
-﻿using scrabbleguy;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 
-public class ScrabbleDictionary
+namespace scrabbleguy
 {
-    private HashSet<string> validWords;
-
-    public ScrabbleDictionary(string filePath)
+    public class ScrabbleDictionary
     {
-        validWords = new HashSet<string>(StringComparer.OrdinalIgnoreCase); // For case-insensitive matching
-        LoadWordsFromFile(filePath);
-    }
+        private HashSet<string> validWords;
+        public Trie WordTrie { get; private set; }
+        public Trie FlippedWordTrie { get; private set; }
 
-    private void LoadWordsFromFile(string filePath)
-    {
-        if (!File.Exists(filePath))
+        public ScrabbleDictionary(string filePath)
         {
-            Console.WriteLine("Dictionary file not found!");
-            return;
+            validWords = new HashSet<string>(StringComparer.OrdinalIgnoreCase); // For case-insensitive matching
+            WordTrie = new Trie();
+            FlippedWordTrie = new Trie();
+            LoadWordsFromFile(filePath);
         }
 
-        foreach (var line in File.ReadLines(filePath))
+        private void LoadWordsFromFile(string filePath)
         {
-            validWords.Add(line.Trim());
-        }
-    }
+            if (!File.Exists(filePath))
+            {
+                Console.WriteLine("Dictionary file not found!");
+                return;
+            }
 
-    public bool IsValidWord(string word)
-    {
-        return validWords.Contains(word);
-    }
-    public HashSet<string> GetFulldictionary()
-    {
-        return validWords;
+            foreach (var line in File.ReadLines(filePath))
+            {
+                string word = line.Trim();
+                validWords.Add(word);
+                WordTrie.Insert(word);
+                FlippedWordTrie.ReverseInsert(word);
+            }
+        }
+
+        public bool IsValidWord(string word)
+        {
+            return validWords.Contains(word);
+        }
+
+        public HashSet<string> GetFullDictionary()
+        {
+            return validWords;
+        }
     }
 }
